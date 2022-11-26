@@ -26,9 +26,6 @@
     <ClInclude Include="singleplayer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="multiplayer.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="define.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -47,10 +44,69 @@
     <ClInclude Include="utility.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="multiplayera.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="battris.rc">
       <Filter>리소스 파일</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="images\blockBackground.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block0.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block4.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block5.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\block6.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\blockGarbage.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\logo.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\map.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino0.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino4.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino5.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="images\tetromino6.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>

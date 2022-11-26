@@ -71,6 +71,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -119,12 +123,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>msimg32.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -135,13 +141,33 @@
     <ClInclude Include="ManyLayer\ManyLayer.h" />
     <ClInclude Include="ManyLayer\ManyLayerImplementation.h" />
     <ClInclude Include="ManyLayer\ManyLayerInterface.h" />
-    <ClInclude Include="multiplayer.h" />
+    <ClInclude Include="multiplayera.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="singleplayer.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="battris.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="images\block0.bmp" />
+    <Image Include="images\block1.bmp" />
+    <Image Include="images\block2.bmp" />
+    <Image Include="images\block3.bmp" />
+    <Image Include="images\block4.bmp" />
+    <Image Include="images\block5.bmp" />
+    <Image Include="images\block6.bmp" />
+    <Image Include="images\blockBackground.bmp" />
+    <Image Include="images\blockGarbage.bmp" />
+    <Image Include="images\logo.bmp" />
+    <Image Include="images\map.bmp" />
+    <Image Include="images\tetromino0.bmp" />
+    <Image Include="images\tetromino1.bmp" />
+    <Image Include="images\tetromino2.bmp" />
+    <Image Include="images\tetromino3.bmp" />
+    <Image Include="images\tetromino4.bmp" />
+    <Image Include="images\tetromino5.bmp" />
+    <Image Include="images\tetromino6.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
