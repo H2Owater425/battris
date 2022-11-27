@@ -1,306 +1,58 @@
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN
+
+#include <stdio.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <conio.h>
 #include <time.h>
 #include <wchar.h>
 #include <process.h>
-#include <windows.h>
 #include <winsock.h>
 //#include <ws2tcpip.h>
+#include <windows.h>
 
 #include "ManyLayer/ManyLayer.h"
 #include "utility.h"
 #include "define.h"
+#include "singleplayer.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
 #ifndef MULTIPLAYER_H_INCLUDED
 #define MULTIPLAYER_H_INCLUDED
 
-//
-typedef struct {
-	SOCKET _socket;
-	int (*mapBuffer)[MAP_WIDTH];
-	bool* _isGameEnded, * isWin;
-} SendMapBufferThreadArgument;
-
-//
-typedef struct {
-	SOCKET _socket;
-	int score, combo;
-	bool* _isGameEnded, *isWin;
-} SendScoreAndComboThreadArgument;
-
-//
-typedef struct {
-	SOCKET _socket;
-	int* nextShapes;
-	bool* _isGameEnded, * isWin;
-} SendNextShapesThreadArgument;
-
-//
-typedef struct {
-	SOCKET _socket;
-	int holdingShape;
-	bool* _isGameEnded, * isWin;
-} SendHoldingShapeThreadArgument;
-
-//
-typedef struct {
-	SOCKET _socket;
-	int lineCount;
-	bool* _isGameEnded, * isWin;
-} SendAttackThreadArgument;
-
-//
-typedef struct {
-	SOCKET _socket;
-} SendEndingThreadArgument;
-
-typedef struct {
-	SOCKET _socket;
-	ManyLayer* manyLayer;
-	int (*mapBuffer)[MAP_WIDTH];
-	bool* isAttacking, * _isGameEnded, * isWin;
-} HandleReceivingThreadArgument;
 
 const int const imageIndexOffsetMultiplayer = MAP_WIDTH * MAP_HEIGHT + 6, textIndexOffsetMultiplayer = 6;
 
-inline void sendMapBufferThread(SendMapBufferThreadArgument* argument) {
-	char buffer[404] = "MAP";
-	int bufferIndex = 3;
+//void updateMapBufferSingleplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH]);
+//void updateTetrominoSingleplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int* rotation, int* x, int* y, int direction);
+//void inactivateTetrominoSingleplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int x, int y);
+//void updateHoldingSingleplayer(ManyLayer* manyLayer, int holdingShape);
+//void updateNextShapesSingleplayer(ManyLayer* manyLayer, int* nextShapes);
+//void updateScoreSingleplayer(ManyLayer* manyLayer, int score);
+//void updateComboSingleplayer(ManyLayer* manyLayer, int combo);
+//void removeFullLineSingleplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, long long int* score, long long int* combo);
 
-	for(int i = 1; i < MAP_HEIGHT - 1; i++) {
-		for(int j = 1; j < MAP_WIDTH - 1; j++) {
-			sprintf_s(buffer + bufferIndex, sizeof(buffer) - bufferIndex, " %d", (argument->mapBuffer)[i][j] < 7 ? (argument->mapBuffer)[i][j] : (argument->mapBuffer)[i][j] - 7);
+typedef struct {
+	SOCKET* _socket;
+	ManyLayer* manyLayer;
+	int(*mapBuffer)[MAP_WIDTH], * y;
+	bool* _isGameEnded, * isReceiving, * isWin;
+} HandleReceivingMultiplayerArgument;
 
-			bufferIndex += 2;
-		}
-	}
+typedef struct {
+	SOCKET* _socket;
+	int(*mapBuffer)[MAP_WIDTH], * nextShapes, * holdingShape, * score, * combo;
+	bool* _isGameEnded;
+} HandleSendingMultiplayerArgument;
 
-	if(send(argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
-		*(argument->_isGameEnded) = true;
-		*(argument->isWin) = true;
-	}
+inline void removeFullLineMultiplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, long long int* score, long long int* combo) {
+	int fullLineCount = 0;
 
-
-	_endthreadex(0);
-}
-
-inline void sendScoreAndComboThread(SendScoreAndComboThreadArgument* argument) {
-	char buffer[18] = "SAC";
-
-	sprintf_s(buffer + 3, sizeof(buffer) - 3, " %6d %6d", argument->score, argument->combo);
-
-	if(send(argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
-		*(argument->_isGameEnded) = true;
-		*(argument->isWin) = true;
-	}
-
-	_endthreadex(0);
-}
-
-inline void sendNextShapesThread(SendNextShapesThreadArgument* argument) {
-	char buffer[14] = "NXS";
-	int bufferIndex = 3;
-
-	for(int i = 0; i < 5; i++) {
-		sprintf_s(buffer + bufferIndex, sizeof(buffer) - bufferIndex, " %d", (argument->nextShapes)[i]);
-
-		bufferIndex += 2;
-	}
-
-	if(send(argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
-		*(argument->_isGameEnded) = true;
-		*(argument->isWin) = true;
-	}
-
-	_endthreadex(0);
-}
-
-inline void sendHoldingShapeThread(SendHoldingShapeThreadArgument* argument) {
-	char buffer[6] = "HDS";
-
-	sprintf_s(buffer + 3, sizeof(buffer) - 3, " %d", argument->holdingShape);
-
-	if(send(argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
-		*(argument->_isGameEnded) = true;
-		*(argument->isWin) = true;
-	}
-
-	_endthreadex(0);
-}
-
-inline void sendAttackThread(SendAttackThreadArgument* argument) {
-	char buffer[6] = "ATK";
-
-	sprintf_s(buffer + 3, sizeof(buffer) - 3, " %d", argument->lineCount);
-
-	if(send(argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
-		*(argument->_isGameEnded) = true;
-*(argument->isWin) = true;
-	}
-
-
-	_endthreadex(0);
-}
-
-inline void sendEndingThread(SendEndingThreadArgument* argument) {
-	send(argument->_socket, "END", 4, 0);
-
-	_endthreadex(0);
-}
-
-inline void handleReceivingThread(HandleReceivingThreadArgument* argument) {
-	char buffer[512], action[4];
-	int bufferIndex, temporary;
-
-	action[3] = 0;
-
-	while(!*(argument->_isGameEnded)) {
-		bufferIndex = 3;
-
-		if(recv(argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
-			*(argument->_isGameEnded) = true;
-			*(argument->isWin) = true;
-
-			break;
-		}
-
-		strncpy_s(action, sizeof(action), buffer, 3);
-
-		if(strcmp(action, "MAP")) {
-			for(int i = 1; i < MAP_HEIGHT - 1; i++) {
-				for(int j = 1; j < MAP_WIDTH - 1; j++) {
-					sscanf_s(buffer + bufferIndex, "%d", &temporary);
-					bufferIndex += 2;
-
-					argument->manyLayer->images[j + i * 12 + imageIndexOffsetMultiplayer].bitmapHandle = blockBitmapHandles[temporary];
-				}
-			}
-
-			argument->manyLayer->renderAll(argument->manyLayer);
-		} else if(strcmp(action, "SAC")) {
-			sscanf_s(buffer + bufferIndex, "%d", &temporary);
-			bufferIndex += 2;
-
-			wsprintfW(argument->manyLayer->texts[textIndexOffsetMultiplayer].content, L"%06ld", temporary);
-
-			sscanf_s(buffer + bufferIndex, "%d", &temporary);
-
-			wsprintfW(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].content, L"%06ld", temporary);
-
-			argument->manyLayer->renderAll(argument->manyLayer);
-		} else if(strcmp(action, "NXS")) {
-			for(int i = 0; i < 5; i++) {
-				sscanf_s(buffer + bufferIndex, "%d", &temporary);
-				bufferIndex += 2;
-
-				argument->manyLayer->images[imageIndexOffsetMultiplayer + imageIndexOffsetSinglePlayer + i].bitmapHandle = tetrominoBItmapHandles[temporary];
-			}
-
-			argument->manyLayer->renderAll(argument->manyLayer);
-		} else if(strcmp(action, "HDS")) {
-			sscanf_s(buffer + bufferIndex, "%d", &temporary);
-			
-			argument->manyLayer->images[imageIndexOffsetMultiplayer + imageIndexOffsetSinglePlayer + 5].bitmapHandle = tetrominoBItmapHandles[temporary];
-
-			argument->manyLayer->renderAll(argument->manyLayer);
-		} else if(strcmp(action, "ATK")) {
-			*(argument->isAttacking) = true;
-
-			sscanf_s(buffer + bufferIndex, "%d", &temporary);
-
-			for(int j = MAP_HEIGHT - 1; j > temporary + 1; j--) {
-				for(int k = 1; k < MAP_WIDTH - 1; k++) {
-					argument->mapBuffer[j][k] = argument->mapBuffer[j - temporary][k];
-				}
-			}
-
-			for(int j = MAP_HEIGHT - temporary - 1; j < temporary + 1; j++) {
-				int removedIndex = rand() % 10 + 1;
-
-				for(int k = 1; k < MAP_WIDTH - 1; k++) {
-					argument->mapBuffer[j][k] = removedIndex == k ? 15 : 14;
-				}
-			}
-
-			*(argument->isAttacking) = false;
-
-			argument->manyLayer->renderAll(argument->manyLayer);
-		} else if(strcmp(action, "END")) {
-			*(argument->_isGameEnded) = true;
-			*(argument->isWin) = true;
-		}
-
-		Sleep(10);
-	}
-
-	_endthreadex(0);
-}
-
-void startThread(void* function, void* argument) {
-	CloseHandle((HANDLE)_beginthreadex(NULL, 0, function, argument, 0, NULL));
-}
-
-inline void updateTetrominoMultiplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int* rotation, int* x, int* y, int direction, SOCKET _socket, bool* _isGameEnded, bool* isWin) {
-	removeTetromino(mapBuffer, shape, *rotation, *x, *y);
-
-	switch(direction) {
-		case LEFT: {
-			(*x)--;
-
-			break;
-		}
-		case RIGHT: {
-			(*x)++;
-
-			break;
-		}
-		case DOWN: {
-			(*y)++;
-
-			break;
-		}
-		case ROTATE_CLOCKWISE: {
-			*rotation = (*rotation + 1) % 4;
-
-			break;
-		}
-		case ROTATE_COUNTERCLOCKWISE: {
-			*rotation = (*rotation + 3) % 4;
-
-			break;
-		}
-	}
-
-	for(int i = 0; i < 4; i++) {
-		for(int j = 0; j < 4; j++) {
-			if(tetrominos[shape][*rotation][i][j]) {
-				mapBuffer[*y + i][*x + j]
-					= shape;
-			}
-		}
-	}
-
-	SendMapBufferThreadArgument sendMapBufferThreadArgument = { _socket };
-	
-	sendMapBufferThreadArgument.mapBuffer = mapBuffer;
-	sendMapBufferThreadArgument._isGameEnded = _isGameEnded;
-	sendMapBufferThreadArgument.isWin = isWin;
-
-	startThread(sendMapBufferThread, &sendMapBufferThreadArgument);
-
-	updateMapBufferSingleplayer(manyLayer, mapBuffer);
-
-	manyLayer->renderAll(manyLayer);
-}
-
-inline void removeFullLineMultiplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, long long int* score, long long int* combo, SOCKET _socket, bool* _isGameEnded, bool* isWin) {
-	int lineCount = 0;
-	
 	for(int i = 2; i < MAP_HEIGHT - 1; i++) {
 		bool isLineFull = true;
 
@@ -313,7 +65,7 @@ inline void removeFullLineMultiplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_
 		}
 
 		if(isLineFull) {
-			lineCount++;
+			fullLineCount++;
 
 			for(int j = i; j > 1; j--) {
 				for(int k = 1; k < MAP_WIDTH - 1; k++) {
@@ -325,30 +77,13 @@ inline void removeFullLineMultiplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_
 		}
 	}
 
-	if(lineCount != 0) {
-		*combo += lineCount;
+	if(fullLineCount != 0) {
+		*combo += fullLineCount;
 	} else {
 		*combo = 0;
 	}
 
-	*score += lineCount * (10 + (*combo - 1) * 2);
-
-	SendScoreAndComboThreadArgument sendScoreAndComboThreadArgument = { _socket };
-	
-	sendScoreAndComboThreadArgument.score = *score;
-	sendScoreAndComboThreadArgument.combo = *combo;
-	sendScoreAndComboThreadArgument._isGameEnded = _isGameEnded;
-	sendScoreAndComboThreadArgument.isWin = isWin;
-
-	startThread(sendScoreAndComboThread, &sendScoreAndComboThreadArgument);
-
-	SendAttackThreadArgument sendAttackThreadArgument = { _socket };
-	
-	sendAttackThreadArgument.lineCount = lineCount;
-	sendAttackThreadArgument._isGameEnded = _isGameEnded;
-	sendAttackThreadArgument.isWin = isWin;
-
-	startThread(sendAttackThread, &sendAttackThreadArgument);
+	*score += fullLineCount * (10 + (*combo - 1) * 2);
 
 	updateComboSingleplayer(manyLayer, *combo);
 
@@ -359,20 +94,133 @@ inline void removeFullLineMultiplayer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_
 	manyLayer->renderAll(manyLayer);
 }
 
-inline void updateNextShapesMultiplayer(ManyLayer* manyLayer, int* nextShapes, SOCKET _socket, bool* _isGameEnded, bool* isWin) {
-	for(int i = 0; i < 5; i++) {
-		manyLayer->images[imageIndexOffsetSinglePlayer + i].bitmapHandle = tetrominoBItmapHandles[nextShapes[i]];
+inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argument) {
+	char buffer[1024];
+	int bufferIndex, temporaryInteger;
+
+	while(!*(argument->_isGameEnded)) {
+		recv(*(argument->_socket), buffer, sizeof(buffer), 0);
+
+		if(recv(*(argument->_socket), buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK || buffer[0] == 0) {
+			*(argument->_isGameEnded) = true;
+			*(argument->isWin) = true;
+
+			break;
+		}
+
+		*(argument->isReceiving) = true;
+
+		bufferIndex = 0;
+
+		for(int i = 1; i < MAP_HEIGHT - 1; i++) {
+			for(int j = 1; j < MAP_WIDTH - 1; j++) {
+				sscanf_s(buffer + bufferIndex, "%d", &temporaryInteger);
+				bufferIndex += 2;
+
+				argument->manyLayer->images[j + i * 12 + imageIndexOffsetMultiplayer].bitmapHandle = blockBitmapHandles[temporaryInteger];
+
+			}
+		}
+
+		for(int i = 0; i < 5; i++) {
+			sscanf_s(buffer + bufferIndex, "%d", &temporaryInteger);
+			bufferIndex += 2;
+
+			argument->manyLayer->images[MAP_WIDTH * MAP_HEIGHT + i + imageIndexOffsetMultiplayer].bitmapHandle = tetrominoBItmapHandles[temporaryInteger];
+		}
+
+		sscanf_s(buffer + bufferIndex, "%d", &temporaryInteger);
+		bufferIndex += 2;
+
+		argument->manyLayer->images[imageIndexOffsetMultiplayer + MAP_WIDTH * MAP_HEIGHT + 5].isHidden = temporaryInteger == 8;
+
+		if(!(argument->manyLayer->images[imageIndexOffsetMultiplayer + MAP_WIDTH * MAP_HEIGHT + 5].isHidden)) {
+			argument->manyLayer->images[imageIndexOffsetMultiplayer + MAP_WIDTH * MAP_HEIGHT + 5].bitmapHandle = tetrominoBItmapHandles[temporaryInteger];
+		}
+
+		sscanf_s(buffer + bufferIndex, "%d", &temporaryInteger);
+		bufferIndex += getIntegerLength(temporaryInteger) + 1;
+
+		wsprintfW(argument->manyLayer->texts[textIndexOffsetMultiplayer].content, L"%06ld", temporaryInteger);
+
+		sscanf_s(buffer + bufferIndex, "%d", &temporaryInteger);
+		bufferIndex += getIntegerLength(temporaryInteger) + 1;
+
+		argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].isHidden = temporaryInteger == 0;
+		argument->manyLayer->texts[textIndexOffsetMultiplayer + 4].isHidden = argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].isHidden;
+
+
+		if(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].isHidden) {
+			int previousCombo = _wtoi(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].content);
+
+			*(argument->y) -= previousCombo;
+
+			if(previousCombo != 0) {
+				for(int j = previousCombo; j < MAP_HEIGHT - 1 - previousCombo; j++) {
+					
+
+					/*if(j + previousCombo > MAP_HEIGHT - 2) {
+						break;
+					}*/
+					
+					for(int k = 1; k < MAP_WIDTH - 1; k++) {
+						argument->mapBuffer[j][k] = argument->mapBuffer[j + previousCombo][k];
+					}
+				}
+
+				for(int i = MAP_HEIGHT - 2; i >= MAP_HEIGHT - 1 - previousCombo; i--) {
+					int hole = rand() % 10 + 1;
+
+					for(int k = 1; k < MAP_WIDTH - 1; k++) {
+						argument->mapBuffer[i][k] = hole == k ? 15 : 14;
+					}
+				}
+			}
+		}
+
+		wsprintfW(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].content, L"%ld", temporaryInteger);
+
+		*(argument->isReceiving) = false;
 	}
 
-	SendNextShapesThreadArgument sendNextShapesThreadArgument = { _socket };
-	
-	sendNextShapesThreadArgument.nextShapes = nextShapes;
-	sendNextShapesThreadArgument._isGameEnded = _isGameEnded;
-	sendNextShapesThreadArgument.isWin = isWin;
 
-	startThread(sendNextShapesThread, &sendNextShapesThreadArgument);
+	_endthreadex(0);
+}
 
-	manyLayer->renderAll(manyLayer);
+inline void handleSendingMultiplayer(HandleSendingMultiplayerArgument* argument) {
+	char buffer[1024];
+	int bufferIndex;
+
+	while(!*(argument->_isGameEnded)) {
+		memset(buffer, 0, sizeof(buffer));
+
+		bufferIndex = 0;
+
+		for(int i = 1; i < MAP_HEIGHT - 1; i++) {
+			for(int j = 1; j < MAP_WIDTH - 1; j++) {
+				sprintf_s(buffer + bufferIndex, sizeof(buffer) - bufferIndex, " %d", (argument->mapBuffer)[i][j] < 7 ? (argument->mapBuffer)[i][j] : (argument->mapBuffer)[i][j] - 7);
+
+				bufferIndex += 2;
+			}
+		}
+
+		for(int i = 0; i < 5; i++) {
+			sprintf_s(buffer + bufferIndex, sizeof(buffer) - bufferIndex, " %d", (argument->nextShapes)[i]);
+			bufferIndex += 2;
+		}
+
+		sprintf_s(buffer + bufferIndex, sizeof(buffer) - bufferIndex, " %d %d %d", *(argument->holdingShape), *(argument->score), *(argument->combo));
+
+		if(send(*argument->_socket, buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK) {
+			break;
+		}
+
+		Sleep(10);
+	}
+
+	send(*argument->_socket, "", 1, 0);
+
+	_endthreadex(0);
 }
 
 inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* socketAddress, bool isChallenger) {
@@ -383,12 +231,11 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 	manyLayer->images = NULL;
 
 	manyLayer->imageCount = 0;
+	
+	TIMEVAL timeout = { 10, 0 };
 
 	if(isChallenger) {
 		if(WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-
-			_getch();
-
 			WSACleanup();
 
 			throwError(manyLayer, "WSAStartup failed");
@@ -405,7 +252,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 		manyLayer->texts = (Text[]){
 			{ L"Type challenged's IP", 700, 448, 36, 96, 600, L"家具稠8", RGB(255, 255, 255), false },
-			{ ip, 1104, 736, 20, 50, 600, L"家具稠8", RGB(255, 255, 255), false },
+			{ ip, 1104, 736, 20, 50, 600, L"家具稠8", RGB(255, 255, 255), false }
 		};
 
 		manyLayer->textCount = 2;
@@ -463,7 +310,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 		InetPtonW(socketAddress->sin_family, ip, &socketAddress->sin_addr.s_addr);
 
-		if(connect(*_socket, socketAddress, socketAddressSize) == SOCKET_ERROR) {
+		if(connect(*_socket, (SOCKADDR *)socketAddress, socketAddressSize) == SOCKET_ERROR) {
 			closesocket(*_socket);
 			WSACleanup();
 
@@ -493,7 +340,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 		serverSocketAddress.sin_port = PORT;
 		InetPtonW(serverSocketAddress.sin_family, L"127.0.0.1", &serverSocketAddress.sin_addr.s_addr);
 
-		if(bind(serverSocket, &serverSocketAddress, socketAddressSize) == SOCKET_ERROR) {
+		if(bind(serverSocket, (SOCKADDR *)&serverSocketAddress, socketAddressSize) == SOCKET_ERROR) {
 			closesocket(serverSocket);
 			WSACleanup();
 
@@ -513,7 +360,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 		manyLayer->textCount = 1;
 
-		*_socket = accept(serverSocket, socketAddress, &socketAddressSize);
+		*_socket = accept(serverSocket, (SOCKADDR *)socketAddress, &socketAddressSize);
 
 		if(*_socket == INVALID_SOCKET) {
 			closesocket(*_socket);
@@ -521,6 +368,20 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 			throwError(manyLayer, "Socket accepting failed");
 		}
+	}
+
+	if(setsockopt(*_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof timeout) < 0) {
+		closesocket(*_socket);
+		WSACleanup();
+
+		throwError(manyLayer, "Socket setting failed");
+	}
+
+	if(setsockopt(*_socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof timeout) < 0) {
+		closesocket(*_socket);
+		WSACleanup();
+
+		throwError(manyLayer, "Socket setting failed");
 	}
 }
 
@@ -531,8 +392,6 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 	SOCKET _socket;
 	SOCKADDR_IN socketAddress;
 
-	PlaySoundW(NULL, NULL, NULL);
-
 	startConnection(manyLayer, &_socket, &socketAddress, isChallenger);
 
 	PlaySoundW(L"sounds/multiplayerGameEnter_fix.wav", NULL, SND_FILENAME | SND_ASYNC);
@@ -540,6 +399,13 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 	Sleep(2000);
 
 	PlaySoundW(L"sounds/multiplayerGameLoop_fix.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+
+	/*SOCKET* _socket;
+	ManyLayer* manyLayer;
+	int(*mapBuffer)[MAP_WIDTH];
+	bool* isAttacked, * _isGameEnded;*/
+
+	//startStartingTimer(manyLayer);
 
 	int mapBuffer[MAP_HEIGHT][MAP_WIDTH];
 
@@ -565,7 +431,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 	manyLayer->imageCount = sizeof(images) / sizeof(Image);
 
-	updateMapBufferSingleplayer(manyLayer, mapBuffer, false);
+	updateMapBufferSingleplayer(manyLayer, mapBuffer);
 
 	manyLayer->texts = (Text[]){
 		{ malloc(sizeof(wchar_t) * 7), 1472 - 688, 1356, 20, 50, 600, L"家具稠8", RGB(255, 255, 255), false },
@@ -589,64 +455,52 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 	manyLayer->renderAll(manyLayer);
 
-	int x = MAP_WIDTH / 2 - 2, y = 0, rotation = 0, shape = rand() % 7, nextShapes[5] = { rand() % 7, rand() % 7, rand() % 7, rand() % 7, rand() % 7 }, holdingShape = 8, lineCount = 0, score = 0, combo = 0;
+	int x = MAP_WIDTH / 2 - 2, y = 0, rotation = 0, shape = rand() % 7, nextShapes[5] = { rand() % 7, rand() % 7, rand() % 7, rand() % 7, rand() % 7 }, holdingShape = 8, score = 0, combo = 0;
 	long long int _time = 0, checkingTime = 41, lastCheckTime = 0;
-	bool _isGameEnded = false, _isCollided = false, isHoldingShape = false, isAttacking = false, isWin = false;
+	bool _isGameEnded = false, _isCollided = false, isHoldingShape = false, isReceiving = false, isWin = false;
 
-	HandleReceivingThreadArgument handleReceivingThreadArgument = { _socket };
+	updateScoreSingleplayer(manyLayer, score);
+	updateComboSingleplayer(manyLayer, combo);
+	updateNextShapesSingleplayer(manyLayer, nextShapes);
+	updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL);
 
-	handleReceivingThreadArgument.manyLayer = manyLayer;
-	handleReceivingThreadArgument.mapBuffer = mapBuffer;
-	handleReceivingThreadArgument._isGameEnded = &_isGameEnded;
-	handleReceivingThreadArgument.isAttacking = &isAttacking;
-	handleReceivingThreadArgument.isWin = &isWin;
+	for(int i = 0; i < MAP_HEIGHT; i++) {
+		for(int j = 0; j < MAP_WIDTH; j++) {
+			manyLayer->images[j + i * 12 + imageIndexOffsetMultiplayer].bitmapHandle = blockBitmapHandles[mapBuffer[i][j] < 7 ? mapBuffer[i][j] : mapBuffer[i][j] - 7];
+		}
+	}
 
-	startThread(handleReceivingThread, &handleReceivingThreadArgument);
+	memset(manyLayer->texts[textIndexOffsetMultiplayer + 1].content, 0, sizeof(wchar_t) * 7);
 
-	/*
-	typedef struct {
-		SOCKET _socket;
-		int(*mapBuffer)[MAP_WIDTH], * isWin;
-	} SendMapBufferThreadArgument;
+	HandleReceivingMultiplayerArgument handleReceivingMultiplayerArgument;
+	HandleSendingMultiplayerArgument handleSendingMultiplayerArgument;
 
-	typedef struct {
-		SOCKET _socket;
-		int score, combo, * isWin;
-	} SendScoreAndComboThreadArgument;
+	handleSendingMultiplayerArgument._socket = &_socket;
+	handleSendingMultiplayerArgument.mapBuffer = mapBuffer;
+	handleSendingMultiplayerArgument.nextShapes = nextShapes;
+	handleSendingMultiplayerArgument.holdingShape = &holdingShape;
+	handleSendingMultiplayerArgument.score = &score;
+	handleSendingMultiplayerArgument.combo = &combo;
+	handleSendingMultiplayerArgument._isGameEnded = &_isGameEnded;
 
-	typedef struct {
-		SOCKET _socket;
-		int* nextShapes, * isWin;
-	} SendNextShapesThreadArgument;
+	handleReceivingMultiplayerArgument._socket = &_socket;
+	handleReceivingMultiplayerArgument.manyLayer = manyLayer;
+	handleReceivingMultiplayerArgument.mapBuffer = mapBuffer;
+	handleReceivingMultiplayerArgument.y = &y;
+	handleReceivingMultiplayerArgument._isGameEnded = &_isGameEnded;
+	handleReceivingMultiplayerArgument.isReceiving = &isReceiving;
+	handleReceivingMultiplayerArgument.isWin = &isWin;
 
-	typedef struct {
-		SOCKET _socket;
-		int holdingShape, * isWin;
-	} SendHoldingShapeThreadArgument;
-
-	typedef struct {
-		SOCKET _socket;
-		int lineCount, * isWin;
-	} SendAttackThreadArgument;
-
-	typedef struct {
-		SOCKET _socket;
-	} SendEndingThreadArgument;
-
-	typedef struct {
-		SOCKET _socket;
-		ManyLayer* manyLayer;
-		int(*mapBuffer)[MAP_WIDTH];
-		bool* _isGameEnded, * isAttacking, * isWin;
-	} HandleReceivingThreadArgument;*/
+	CloseHandle((HANDLE)_beginthreadex(NULL, 0, (_beginthreadex_proc_type)handleReceivingMultiplayer, &handleReceivingMultiplayerArgument, 0, NULL));
+	CloseHandle((HANDLE)_beginthreadex(NULL, 0, (_beginthreadex_proc_type)handleSendingMultiplayer, &handleSendingMultiplayerArgument, 0, NULL));
 
 	while(!_isGameEnded) {
-		if(!isAttacking) {
+		if(!isReceiving) {
 			if(_time % checkingTime == 0) {
 				_isCollided = isCollided(mapBuffer, shape, rotation, x, y + 1);
 
 				if(!_isCollided) {
-					updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, DOWN, _socket, &isGameEnded, &isWin);
+					updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, DOWN);
 				} else {
 					lastCheckTime -= 20;
 				}
@@ -662,7 +516,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 				switch(_getch()) {
 					case LEFT: {
 						if(!isCollided(mapBuffer, shape, rotation, x - 1, y)) {
-							updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, LEFT, _socket, &isGameEnded, &isWin);
+							updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, LEFT);
 							lastCheckTime = _time + 20;
 						}
 
@@ -670,7 +524,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 					}
 					case RIGHT: {
 						if(!isCollided(mapBuffer, shape, rotation, x + 1, y)) {
-							updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, RIGHT, _socket, &isGameEnded, &isWin);
+							updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, RIGHT);
 							lastCheckTime = _time + 20;
 						}
 
@@ -678,7 +532,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 					}
 					case DOWN: {
 						if(!isCollided(mapBuffer, shape, rotation, x, y + 1)) {
-							updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, DOWN, _socket, &isGameEnded, &isWin);
+							updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, DOWN);
 							lastCheckTime = _time + 20;
 						}
 
@@ -688,7 +542,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 					case 72:
 					case ROTATE_CLOCKWISE: {
 						if(!isCollided(mapBuffer, shape, (rotation + 1) % 4, x, y)) {
-							updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, ROTATE_CLOCKWISE, _socket, &isGameEnded, &isWin);
+							updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, ROTATE_CLOCKWISE);
 							lastCheckTime = _time + 20;
 						}
 
@@ -696,7 +550,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 					}
 					case ROTATE_COUNTERCLOCKWISE: {
 						if(!isCollided(mapBuffer, shape, (rotation + 3) % 4, x, y)) {
-							updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, ROTATE_COUNTERCLOCKWISE, _socket, &isGameEnded, &isWin);
+							updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, ROTATE_COUNTERCLOCKWISE);
 							lastCheckTime = _time + 20;
 						}
 
@@ -713,7 +567,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 						y += downCount - 1;
 
-						updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, DOWN, _socket, &isGameEnded, &isWin);
+						updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, DOWN);
 
 						inactivateTetrominoSingleplayer(manyLayer, mapBuffer, shape, rotation, x, y);
 
@@ -726,16 +580,6 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 						if(!isHoldingShape) {
 							removeTetromino(mapBuffer, shape, rotation, x, y);
 
-							/*typedef struct {
-								SOCKET _socket;
-								int* nextShapes, * isWin;
-							} SendNextShapesThreadArgument;
-
-							typedef struct {
-								SOCKET _socket;
-								int holdingShape, * isWin;
-							} SendHoldingShapeThreadArgument;*/
-
 							if(holdingShape == 8) {
 								holdingShape = shape;
 								shape = nextShapes[0];
@@ -746,22 +590,13 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 								nextShapes[4] = rand() % 7;
 
-								updateNextShapesMultiplayer(manyLayer, nextShapes, _socket, &_isGameEnded, &isWin);
+								updateNextShapesSingleplayer(manyLayer, nextShapes);
 							} else {
 								int temporaryShape = shape;
 
 								shape = holdingShape;
 								holdingShape = temporaryShape;
 							}
-
-							SendHoldingShapeThreadArgument sendHoldingShapeThreadArgument = { _socket };
-
-							
-							sendHoldingShapeThreadArgument.holdingShape = holdingShape;
-							sendHoldingShapeThreadArgument._isGameEnded = &_isGameEnded;
-							sendHoldingShapeThreadArgument.isWin = &isWin;
-
-							startThread(sendHoldingShapeThread, &sendHoldingShapeThreadArgument);
 
 							isHoldingShape = true;
 
@@ -771,7 +606,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 							updateHoldingSingleplayer(manyLayer, holdingShape);
 
-							updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL, _socket, &isGameEnded, &isWin);
+							updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL);
 
 							continue;
 						}
@@ -792,8 +627,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 				if(!isGameEnded(mapBuffer)) {
 					inactivateTetrominoSingleplayer(manyLayer, mapBuffer, shape, rotation, x, y);
-					//ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int* lineCount, int* isSending, long long int* score, long long int* combo
-					removeFullLineMultiplayer(manyLayer, mapBuffer, shape, &score, &combo, _socket, &_isGameEnded, &isWin);
+					removeFullLineSingleplayer(manyLayer, mapBuffer, shape, &score, &combo);
 
 					x = MAP_WIDTH / 2 - 2;
 					y = 0;
@@ -807,9 +641,9 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 					nextShapes[4] = rand() % 7;
 					isHoldingShape = false;
 
-					updateNextShapesMultiplayer(manyLayer, nextShapes, _socket, &_isGameEnded, &isWin);
+					updateNextShapesSingleplayer(manyLayer, nextShapes);
 
-					updateTetrominoMultiplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL, _socket, &isGameEnded, &isWin);
+					updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL);
 				} else {
 					_isGameEnded = true;
 				}
@@ -820,12 +654,55 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 		}
 	}
 
-	if(!isWin) {
-		SendEndingThreadArgument sendEndingThreadArgument = { _socket };
 
-		startThread(sendEndingThread, &sendEndingThreadArgument);
+	free(manyLayer->texts[0].content);
+	free(manyLayer->texts[1].content);
+	free(manyLayer->texts[6].content);
+	free(manyLayer->texts[7].content);
+	free(manyLayer->texts[11].content);
+
+	for(int i = 0; i < 10; i++) {
+		DeleteObject(blockBitmapHandles[i]);
+	}
+
+	for(int i = 0; i < 7; i++) {
+		DeleteObject(tetrominoBItmapHandles[i]);
+	}
+
+	wchar_t content[128];
+
+	wsprintfW(content, L"Multiplayer Localhost %06ld %s %s\n", score);
+
+	updateRecordW(content);
+
+	manyLayer->texts = (Text[]){
+		{ malloc(sizeof(wchar_t) * 7), 1180, 896, 20, 50, 500, L"家具稠8", RGB(255, 255, 255), false},
+		{ L"Game over", 992, 416, 36, 96, 600, L"家具稠8", RGB(255, 255, 255), false },
+		{ L"Score", 1216, 838, 15, 40, 500, L"家具稠8", RGB(255, 255, 255), false}
+	};
+
+	wsprintfW(manyLayer->texts[0].content, L"%06ld", score);
+
+	manyLayer->textCount = 3;
+
+	manyLayer->images = NULL;
+
+	manyLayer->imageCount = 0;
+
+	manyLayer->renderAll(manyLayer);
+	PlaySoundW(NULL, NULL, NULL);
+	PlaySoundW(L"sounds/singleplayerGameoverAndMultiplayerLose.wav", NULL, SND_FILENAME | SND_ASYNC);
+
+	Sleep(5000);
+
+	_getch();
+
+	PlaySoundW(L"sounds/main_fix.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+
+	if(isWin) {
+		puts("winner");
 	} else {
-		printf("You fucking loser");
+		puts("loser");
 	}
 
 	_getch();

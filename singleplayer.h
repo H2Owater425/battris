@@ -358,8 +358,6 @@ inline void startGameSingleplayer(ManyLayer* manyLayer) {
 				nextShapes[4] = rand() % 7;
 				isHoldingShape = false;
 
-				// 여기서 한번 send
-
 				updateNextShapesSingleplayer(manyLayer, nextShapes);
 
 				updateTetrominoSingleplayer(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL);

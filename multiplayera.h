@@ -1,18 +1,24 @@
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN
+
+#include <stdio.h>
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <conio.h>
 #include <time.h>
 #include <wchar.h>
 #include <process.h>
-#include <windows.h>
+#include <ws2tcpip.h>
 #include <winsock.h>
-//#include <ws2tcpip.h>
+#include <windows.h>
 
 #include "ManyLayer/ManyLayer.h"
 #include "utility.h"
 #include "define.h"
+#include "singleplayer.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -93,7 +99,7 @@ inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argum
 	int bufferIndex, temporaryInteger;
 
 	while(!*(argument->_isGameEnded)) {
-		recv(*(argument->_socket), buffer, sizeof(buffer), 0);
+		/*recv(*(argument->_socket), buffer, sizeof(buffer), 0);*/
 
 		if(recv(*(argument->_socket), buffer, sizeof(buffer), 0) == WSAEWOULDBLOCK || buffer[0] == 0) {
 			*(argument->_isGameEnded) = true;
@@ -103,6 +109,8 @@ inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argum
 		}
 
 		*(argument->isReceiving) = true;
+		
+		puts(buffer);
 
 		bufferIndex = 0;
 
@@ -142,9 +150,14 @@ inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argum
 
 		argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].isHidden = temporaryInteger == 0;
 		argument->manyLayer->texts[textIndexOffsetMultiplayer + 4].isHidden = argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].isHidden;
+		
 
 		if(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].isHidden) {
 			int previousCombo = _wtoi(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].content);
+
+			printf("%d", previousCombo);
+
+			exit(0);
 
 			if(previousCombo != 0) {
 				for(int j = MAP_HEIGHT - 2; j > previousCombo + 1; j--) {
@@ -163,7 +176,9 @@ inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argum
 			}
 		}
 
-		*(argument->isReceiving) = false;
+		wsprintfW(argument->manyLayer->texts[textIndexOffsetMultiplayer + 1].content, L"%ld", temporaryInteger);
+
+		//*(argument->isReceiving) = false;
 	}
 
 
@@ -235,7 +250,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 		manyLayer->texts = (Text[]){
 			{ L"Type challenged's IP", 700, 448, 36, 96, 600, L"家具稠8", RGB(255, 255, 255), false },
-			{ ip, 1104, 736, 20, 50, 600, L"家具稠8", RGB(255, 255, 255), false },
+			{ ip, 1104, 736, 20, 50, 600, L"家具稠8", RGB(255, 255, 255), false }
 		};
 
 		manyLayer->textCount = 2;
@@ -293,7 +308,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 		InetPtonW(socketAddress->sin_family, ip, &socketAddress->sin_addr.s_addr);
 
-		if(connect(*_socket, socketAddress, socketAddressSize) == SOCKET_ERROR) {
+		if(connect(*_socket, (SOCKADDR *)socketAddress, socketAddressSize) == SOCKET_ERROR) {
 			closesocket(*_socket);
 			WSACleanup();
 
@@ -323,7 +338,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 		serverSocketAddress.sin_port = PORT;
 		InetPtonW(serverSocketAddress.sin_family, L"127.0.0.1", &serverSocketAddress.sin_addr.s_addr);
 
-		if(bind(serverSocket, &serverSocketAddress, socketAddressSize) == SOCKET_ERROR) {
+		if(bind(serverSocket, (SOCKADDR *)&serverSocketAddress, socketAddressSize) == SOCKET_ERROR) {
 			closesocket(serverSocket);
 			WSACleanup();
 
@@ -343,7 +358,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 
 		manyLayer->textCount = 1;
 
-		*_socket = accept(serverSocket, socketAddress, &socketAddressSize);
+		*_socket = accept(serverSocket, (SOCKADDR *)socketAddress, &socketAddressSize);
 
 		if(*_socket == INVALID_SOCKET) {
 			closesocket(*_socket);
@@ -353,14 +368,14 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 		}
 	}
 
-	if(setsockopt(*_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout) < 0) {
+	if(setsockopt(*_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof timeout) < 0) {
 		closesocket(*_socket);
 		WSACleanup();
 
 		throwError(manyLayer, "Socket setting failed");
 	}
 
-	if(setsockopt(*_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof timeout) < 0) {
+	if(setsockopt(*_socket, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof timeout) < 0) {
 		closesocket(*_socket);
 		WSACleanup();
 
@@ -414,7 +429,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 	manyLayer->imageCount = sizeof(images) / sizeof(Image);
 
-	updateMapBufferSingleplayer(manyLayer, mapBuffer, false);
+	updateMapBufferSingleplayer(manyLayer, mapBuffer);
 
 	manyLayer->texts = (Text[]){
 		{ malloc(sizeof(wchar_t) * 7), 1472 - 688, 1356, 20, 50, 600, L"家具稠8", RGB(255, 255, 255), false },
@@ -471,8 +486,8 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 	handleReceivingMultiplayerArgument.isReceiving = &isReceiving;
 	handleReceivingMultiplayerArgument.isWin = &isWin;
 
-	CloseHandle((HANDLE)_beginthreadex(NULL, 0, handleReceivingMultiplayer, &handleReceivingMultiplayerArgument, 0, NULL));
-	CloseHandle((HANDLE)_beginthreadex(NULL, 0, handleSendingMultiplayer, &handleSendingMultiplayerArgument, 0, NULL));
+	CloseHandle((HANDLE)_beginthreadex(NULL, 0, (_beginthreadex_proc_type)handleReceivingMultiplayer, &handleReceivingMultiplayerArgument, 0, NULL));
+	CloseHandle((HANDLE)_beginthreadex(NULL, 0, (_beginthreadex_proc_type)handleSendingMultiplayer, &handleSendingMultiplayerArgument, 0, NULL));
 
 	while(!_isGameEnded) {
 		if(!isReceiving) {
@@ -633,6 +648,51 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 			_time++;
 		}
 	}
+
+
+	free(manyLayer->texts[0].content);
+	free(manyLayer->texts[1].content);
+	free(manyLayer->texts[6].content);
+	free(manyLayer->texts[7].content);
+	free(manyLayer->texts[11].content);
+
+	for(int i = 0; i < 10; i++) {
+		DeleteObject(blockBitmapHandles[i]);
+	}
+
+	for(int i = 0; i < 7; i++) {
+		DeleteObject(tetrominoBItmapHandles[i]);
+	}
+
+	wchar_t content[128];
+
+	wsprintfW(content, L"Multiplayer Localhost %06ld %s %s\n", score);
+
+	updateRecordW(content);
+
+	manyLayer->texts = (Text[]){
+		{ malloc(sizeof(wchar_t) * 7), 1180, 896, 20, 50, 500, L"家具稠8", RGB(255, 255, 255), false},
+		{ L"Game over", 992, 416, 36, 96, 600, L"家具稠8", RGB(255, 255, 255), false },
+		{ L"Score", 1216, 838, 15, 40, 500, L"家具稠8", RGB(255, 255, 255), false}
+	};
+
+	wsprintfW(manyLayer->texts[0].content, L"%06ld", score);
+
+	manyLayer->textCount = 3;
+
+	manyLayer->images = NULL;
+
+	manyLayer->imageCount = 0;
+
+	manyLayer->renderAll(manyLayer);
+	PlaySoundW(NULL, NULL, NULL);
+	PlaySoundW(L"sounds/singleplayerGameoverAndMultiplayerLose.wav", NULL, SND_FILENAME | SND_ASYNC);
+
+	Sleep(5000);
+
+	_getch();
+
+	PlaySoundW(L"sounds/main_fix.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 
 	if(isWin) {
 		puts("winner");

@@ -50,6 +50,13 @@ inline void updateRecord(char* content) {
 	fclose(recordFile);
 }
 
+inline void updateRecordW(wchar_t* content) {
+	FILE* recordFile = _wfsopen("./record.txt", "a", SH_DENYWR);
+
+	fputws(content, recordFile);
+
+	fclose(recordFile);
+}
 
 inline bool isCollided(int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int x, int y) {
 	for(int i = 0; i < 4; i++) {
@@ -93,7 +100,7 @@ inline void setCoordinate(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), (COORD){ x, y });
 }
 
-inline void throwError(ManyLayer* manyLayer, char* message) {
+inline void throwError(ManyLayer* manyLayer, const char* message) {
 	system("cls && color 04");
 
 	Sleep(COMMAND_DELAY);
