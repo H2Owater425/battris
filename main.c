@@ -63,7 +63,7 @@ int main(void) {
 
 	int loopDepth = 0;
 
-	PlaySoundW(L"sounds/main_fix.wav", NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+	playSound(mainWave, true);
 
 	while(loopDepth == 0) {
 		if(_kbhit()) {
