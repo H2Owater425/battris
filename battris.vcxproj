@@ -170,12 +170,6 @@
     <Image Include="images\tetromino6.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="sounds\blockDownAndSelect.wav" />
-    <Media Include="sounds\combo1.wav" />
-    <Media Include="sounds\combo2.wav" />
-    <Media Include="sounds\combo3.wav" />
-    <Media Include="sounds\combo4.wav" />
-    <Media Include="sounds\comboN.wav" />
     <Media Include="sounds\credit.wav" />
     <Media Include="sounds\main.wav" />
     <Media Include="sounds\multiplayerGameEnter.wav" />
@@ -183,7 +177,6 @@
     <Media Include="sounds\multiplayerWin.wav" />
     <Media Include="sounds\singleplayerGame.wav" />
     <Media Include="sounds\singleplayerGameoverAndMultiplayerLose.wav" />
-    <Media Include="sounds\tetris4.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -84,11 +84,11 @@ inline HDC getRenderedBufferDeviceContext(ManyLayer* manyLayer) {
 }
 
 inline HBITMAP _getBitmapHandleFromPath(const wchar_t* path) {
-	return LoadImageW(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	return (HBITMAP)LoadImageW(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 }
 
 inline HBITMAP _getBitmapHandleFromResource(int resource) {
-	return LoadImageW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(resource), IMAGE_BITMAP, 0, 0, 0);
+	return (HBITMAP)LoadImageW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(resource), IMAGE_BITMAP, 0, 0, 0);
 }
 
 inline void _renderAll(ManyLayer* manyLayer) {

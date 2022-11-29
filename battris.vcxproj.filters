@@ -110,24 +110,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="sounds\blockDownAndSelect.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="sounds\combo1.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="sounds\combo2.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="sounds\combo3.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="sounds\combo4.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="sounds\comboN.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
     <Media Include="sounds\credit.wav">
       <Filter>리소스 파일</Filter>
     </Media>
@@ -147,9 +129,6 @@
       <Filter>리소스 파일</Filter>
     </Media>
     <Media Include="sounds\singleplayerGameoverAndMultiplayerLose.wav">
-      <Filter>리소스 파일</Filter>
-    </Media>
-    <Media Include="sounds\tetris4.wav">
       <Filter>리소스 파일</Filter>
     </Media>
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "ManyLayer/ManyLayer.h"
 #include "define.h"
 #include "resource.h"
+#include "common.h"
 #include "singleplayer.h"
 #include "multiplayer.h"
 
@@ -16,9 +17,12 @@ void initializeConsole(void) {
 	const CONSOLE_CURSOR_INFO consoleCursorInformation = { 1, false };
 	const HWND consoleWindow = GetConsoleWindow();
 	char command[32] = "";
-	
+	DWORD prevMode;
+
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &consoleCursorInformation);
 	SetWindowLongW(consoleWindow, GWL_STYLE, GetWindowLongW(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
+	GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &prevMode);
+	SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), prevMode & ~ENABLE_QUICK_EDIT_MODE);
 	sprintf_s(command, 32, "mode con cols=%d lines=%d", CONSOLE_WIDTH, CONSOLE_HEIGHT);
 	system(command);
 
@@ -32,6 +36,13 @@ void initializeConsole(void) {
 int main(void) {
 	initializeConsole();
 
+	Text mainTexts[4] = {
+		{ L"Singleplayer [1]", 960, 986, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+		{ L"Multiplayer　[2]", 960, 1086, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+		{ L"Record [r]", 64, 1296, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+		{ L"Credit [c]", 2144, 1296, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+	};
+
 	srand(time(NULL));
 
 	ManyLayer manyLayer = DEFAULT_MANY_LAYER;
@@ -40,24 +51,15 @@ int main(void) {
 
 	manyLayer.initialize(&manyLayer);
 
-	if(RESOLUTION_MULTIPLIER != 0.625) {
-		throwError(&manyLayer, "Please set your screen magnification to 125%");
-
-		return 1;
-	}
-
 	manyLayer.images = (Image[]){
 		{ logoBitmapHandle, 352, 192, 4, false }
 	};
 
 	manyLayer.imageCount = 1;
 
-	manyLayer.texts = (Text[]){
-		{ L"Singleplayer [1]", 960, 1050, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-		{ L"Multiplayer　[2]", 960, 1150, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false }
-	};
+	manyLayer.texts = mainTexts;
 
-	manyLayer.textCount = 2;
+	manyLayer.textCount = 4;
 	
 	manyLayer.renderAll(&manyLayer);
 
@@ -77,12 +79,9 @@ int main(void) {
 
 					manyLayer.imageCount = 1;
 
-					manyLayer.texts = (Text[]){
-						{ L"Singleplayer [1]", 960, 1050, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ L"Multiplayer　[2]", 960, 1150, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false }
-					};
+					manyLayer.texts = mainTexts;
 
-					manyLayer.textCount = 2;
+					manyLayer.textCount = 4;
 
 					manyLayer.renderAll(&manyLayer);
 
@@ -90,10 +89,12 @@ int main(void) {
 				}
 
 				case SECOND: {
-					manyLayer.texts[0].content = L"Challenged  [1]";
-					manyLayer.texts[1].content = L"Challenger  [2]";
-					manyLayer.texts[0].x = 976;
-					manyLayer.texts[1].x = 976;
+					manyLayer.texts = (Text[]){
+						{ L"Challenged  [1]", 976, 986, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+						{ L"Challenger  [2]", 976, 1086, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+					};
+
+					manyLayer.textCount = 2;
 
 					manyLayer.renderAll(&manyLayer);
 
@@ -134,14 +135,144 @@ int main(void) {
 
 					manyLayer.imageCount = 1;
 
-					manyLayer.texts = (Text[]){
-						{ L"Singleplayer [1]", 960, 1050, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ L"Multiplayer　[2]", 960, 1150, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false }
-					};
+					manyLayer.texts = mainTexts;
 
-					manyLayer.textCount = 2;
+					manyLayer.textCount = 4;
 					
 					manyLayer.renderAll(&manyLayer);
+
+					break;
+				}
+
+				case RECORD: {
+					manyLayer.images = NULL;
+
+					manyLayer.imageCount = 0;
+
+					manyLayer.texts = (Text[]){
+						{ malloc(sizeof(wchar_t) * 64), 320, 608, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 736, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 864, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 992, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 1120, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
+						{ L"Records", 1072, 160, 36, 96, 600, L"소야논8", RGB(255, 255, 255), false },
+					};
+
+					for(int i = 0; i < 5; i++) {
+						memset(manyLayer.texts[i].content, 0, sizeof(wchar_t) * 64);
+					}
+
+					manyLayer.textCount = 6;
+
+					FILE* recordFIle = _wfsopen(L"record.txt", L"r", SH_DENYWR);
+
+					if(recordFIle != NULL) {
+						wchar_t buffer[64];
+						while(!feof(recordFIle))
+						{
+							for(int i = 0; i < 4; i++) {
+								wsprintfW(manyLayer.texts[i].content, manyLayer.texts[i + 1].content);
+							}
+
+
+							fgetws(manyLayer.texts[4].content, sizeof(wchar_t) * 64, recordFIle);
+						}
+
+
+						fclose(recordFIle);
+					}
+
+					manyLayer.renderAll(&manyLayer);
+
+					while(_getch() != EXIT) {}
+
+					manyLayer.images = (Image[]){
+						{ logoBitmapHandle, 352, 192, 4, false }
+					};
+
+					manyLayer.imageCount = 1;
+
+					manyLayer.texts = mainTexts;
+
+					manyLayer.textCount = 4;
+
+					manyLayer.renderAll(&manyLayer);
+
+					break;
+				}
+
+				case CREDIT: {
+					stopSound();
+
+					playSound(creditWave, false);
+
+					//Sleep(1024);
+
+					manyLayer.images = NULL;
+
+					manyLayer.imageCount = 0;
+
+					manyLayer.texts = (Text[]){
+						{ L"총괄", 1264, 16 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"노래", 1264, 208 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"테스터", 1248, 496 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"장비", 1264, 784 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"1401 김강민", 1120, 80 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"익명의 지인 1", 1104, 272 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"익명의 지인 2", 1104, 368 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"1421 이진서", 1128, 560 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"1428 진호정", 1128, 656 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"핵8나5배", 1176, 848 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"은하초지적21더하기", 1008, 944 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"은하판형전산기초지적8더하기", 864, 1040 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"은하싹2", 1184, 1136 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"은하책활성2", 1128, 1232 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+					};
+					manyLayer.textCount = 14;
+					manyLayer.renderAll(&manyLayer);
+					Sleep(5120);
+
+					while(manyLayer.texts[13].y != -128) {
+						for(int i = 0; i < 14; i++) {
+							manyLayer.texts[i].y -= 1;
+						}
+
+						manyLayer.renderAll(&manyLayer);
+
+						Sleep(11);
+					}
+
+					/*while(!_kbhit()) {
+
+						for(int i = 0; i < 14; i++) {
+							manyLayer.texts[i].y -= 10;
+						}
+
+						manyLayer.renderAll(&manyLayer);
+
+						Sleep(10);
+					}
+
+					printf("%d", manyLayer.texts[13].y);*/
+
+					//while(_getch() != EXIT) {}
+					Sleep(5120);
+
+					stopSound();
+
+					manyLayer.images = (Image[]){
+						{ logoBitmapHandle, 352, 192, 4, false }
+					};
+
+					manyLayer.imageCount = 1;
+
+					manyLayer.texts = mainTexts;
+
+					manyLayer.textCount = 4;
+
+					manyLayer.renderAll(&manyLayer);
+
+					playSound(mainWave, true);
 
 					break;
 				}

@@ -23,6 +23,9 @@
 
 #define SPACE 32
 
+#define RECORD 114
+#define CREDIT 99
+
 #define ROTATE_CLOCKWISE 120
 #define ROTATE_COUNTERCLOCKWISE 122
 

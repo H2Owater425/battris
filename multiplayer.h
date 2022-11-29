@@ -27,7 +27,7 @@
 typedef struct {
 	SOCKET* _socket;
 	ManyLayer* manyLayer;
-	int(*mapBuffer)[MAP_WIDTH], * y;
+	int(*mapBuffer)[MAP_WIDTH], * shape, * rotation, * x, * y;
 	bool* _isGameEnded, * isReceiving, * isWin;
 } HandleReceivingMultiplayerArgument;
 
@@ -113,7 +113,13 @@ inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argum
 
 			*(argument->y) -= previousCombo;
 
+			if(*(argument->y) < 0) {
+				*(argument->y) = 0;
+			}
+
 			if(previousCombo != 0) {
+
+				removeTetromino(argument->mapBuffer, *(argument->shape), *(argument->rotation), *(argument->x), *(argument->y));
 				for(int j = previousCombo; j < MAP_HEIGHT - 1 - previousCombo; j++) {
 					for(int k = 1; k < MAP_WIDTH - 1; k++) {
 						argument->mapBuffer[j][k] = argument->mapBuffer[j + previousCombo][k];
@@ -306,7 +312,7 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 		memset(&serverSocketAddress, 0, socketAddressSize);
 		serverSocketAddress.sin_family = AF_INET;
 		serverSocketAddress.sin_port = PORT;
-		InetPtonW(serverSocketAddress.sin_family, L"127.0.0.1", &serverSocketAddress.sin_addr.s_addr);
+		InetPtonW(serverSocketAddress.sin_family, L"0.0.0.0", &serverSocketAddress.sin_addr.s_addr);
 
 		if(bind(serverSocket, (SOCKADDR *)&serverSocketAddress, socketAddressSize) == SOCKET_ERROR) {
 			closesocket(serverSocket);
@@ -368,7 +374,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 
 	playSound(multiplayerGameEnterWave, false);
 
-	Sleep(2000);
+	startStartingTimer(manyLayer);
 
 	playSound(multiplayerGameLoopWave, true);
 
@@ -430,7 +436,7 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 	int shape = getSevenBagShape(sevenBag), nextShapes[5] = { getSevenBagShape(sevenBag), getSevenBagShape(sevenBag), getSevenBagShape(sevenBag), getSevenBagShape(sevenBag), getSevenBagShape(sevenBag) };
 
 	updateScore(manyLayer, score);
-	updateCombo(manyLayer, combo);
+	updateCombo(manyLayer, combo, false);
 	updateNextShapes(manyLayer, nextShapes);
 	updateTetromino(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL);
 
@@ -457,7 +463,10 @@ inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 	handleReceivingMultiplayerArgument._socket = &_socket;
 	handleReceivingMultiplayerArgument.manyLayer = manyLayer;
 	handleReceivingMultiplayerArgument.mapBuffer = mapBuffer;
+	handleReceivingMultiplayerArgument.x = &x;
 	handleReceivingMultiplayerArgument.y = &y;
+	handleReceivingMultiplayerArgument.shape = &shape;
+	handleReceivingMultiplayerArgument.rotation = &rotation;
 	handleReceivingMultiplayerArgument._isGameEnded = &_isGameEnded;
 	handleReceivingMultiplayerArgument.isReceiving = &isReceiving;
 	handleReceivingMultiplayerArgument.isWin = &isWin;

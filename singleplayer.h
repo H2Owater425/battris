@@ -13,8 +13,6 @@
 #define SINGLEPLAYER_H_INCLUDED
 
 inline void startGameSingleplayer(ManyLayer* manyLayer) {
-	
-
 	initializeBlockBitmapHandles(blockBitmapHandles);
 	initializeTetrominoBitmapHandles(tetrominoBItmapHandles);
 
@@ -67,7 +65,7 @@ inline void startGameSingleplayer(ManyLayer* manyLayer) {
 	int shape = getSevenBagShape(sevenBag), nextShapes[5] = { getSevenBagShape(sevenBag), getSevenBagShape(sevenBag), getSevenBagShape(sevenBag), getSevenBagShape(sevenBag), getSevenBagShape(sevenBag) };
 
 	updateScore(manyLayer, score);
-	updateCombo(manyLayer, combo);
+	updateCombo(manyLayer, combo, false);
 	updateNextShapes(manyLayer, nextShapes);
 	updateTetromino(manyLayer, mapBuffer, shape, &rotation, &x, &y, NULL);
 
@@ -233,7 +231,6 @@ inline void startGameSingleplayer(ManyLayer* manyLayer) {
 		_time++;
 	}
 
-	free(manyLayer->texts[0].content);
 	free(manyLayer->texts[1].content);
 
 	for(int i = 0; i < 10; i++) {
@@ -245,17 +242,15 @@ inline void startGameSingleplayer(ManyLayer* manyLayer) {
 
 	wchar_t content[31];
 
-	wsprintfW(content, L"Singleplayer Localhost %06ld", score);
+	wsprintfW(content, L"Singleplayer Localhost %06ld\n", score);
 
 	updateRecord(content);
 
 	manyLayer->texts = (Text[]){
-		{ malloc(sizeof(wchar_t) * 7), 1180, 896, 20, 50, 500, L"家具稠8", RGB(255, 255, 255), false},
+		{ manyLayer->texts[0].content, 1180, 896, 20, 50, 500, L"家具稠8", RGB(255, 255, 255), false},
 		{ L"Game over", 992, 416, 36, 96, 600, L"家具稠8", RGB(255, 255, 255), false },
 		{ L"Score", 1216, 838, 15, 40, 500, L"家具稠8", RGB(255, 255, 255), false}
 	};
-
-	wsprintfW(manyLayer->texts[0].content, L"%06ld", score);
 
 	manyLayer->textCount = 3;
 
@@ -264,6 +259,8 @@ inline void startGameSingleplayer(ManyLayer* manyLayer) {
 	manyLayer->imageCount = 0;
 
 	manyLayer->renderAll(manyLayer);
+
+	free(manyLayer->texts[0].content);
 
 	stopSound();
 

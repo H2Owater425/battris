@@ -51,7 +51,7 @@ inline void updateRecord(wchar_t* content) {
 }
 
 inline void playSound(int soundName, bool isLoop) {
-	PlaySoundW(soundName, GetModuleHandle(NULL), SND_RESOURCE | SND_ASYNC | (isLoop ? SND_LOOP : 0));
+	PlaySoundW(soundName, GetModuleHandleW(NULL), SND_RESOURCE | SND_ASYNC | (isLoop ? SND_LOOP : 0));
 }
 
 inline void stopSound(void) {
@@ -81,9 +81,15 @@ inline void updateScore(ManyLayer* manyLayer, int score) {
 }
 
 
-inline void updateCombo(ManyLayer* manyLayer, int combo) {
-	manyLayer->texts[1].isHidden = combo == 0;
-	manyLayer->texts[4].isHidden = manyLayer->texts[1].isHidden;
+inline void updateCombo(ManyLayer* manyLayer, int combo, bool isTetris) {
+	if(combo == 0) {
+		manyLayer->texts[1].isHidden = true;
+		manyLayer->texts[4].isHidden = true;
+	} else {
+		manyLayer->texts[1].isHidden = false;
+		manyLayer->texts[4].isHidden = false;
+	}
+
 	wsprintfW(manyLayer->texts[1].content, L"%d", combo);
 
 	manyLayer->renderAll(manyLayer);
@@ -138,7 +144,6 @@ inline bool isCollided(int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int 
 
 	return false;
 }
-
 
 inline void updateTetromino(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int* rotation, int* x, int* y, int direction) {
 	removeTetromino(mapBuffer, shape, *rotation, *x, *y);
@@ -235,7 +240,7 @@ inline void removeFullLine(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int
 
 	*score += fullLineCount * (10 + (*combo - 1) * 2);
 
-	updateCombo(manyLayer, *combo);
+	updateCombo(manyLayer, *combo, fullLineCount != 4);
 
 	updateScore(manyLayer, *score);
 
