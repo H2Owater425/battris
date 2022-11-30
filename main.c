@@ -145,6 +145,58 @@ int main(void) {
 				}
 
 				case RECORD: {
+					manyLayer.images = NULL;
+
+					manyLayer.imageCount = 0;
+
+					manyLayer.texts = (Text[]){
+						{ malloc(sizeof(wchar_t) * 64), 320, 608, 24, 64, 500, L"家具稠8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 736, 24, 64, 500, L"家具稠8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 864, 24, 64, 500, L"家具稠8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 992, 24, 64, 500, L"家具稠8", RGB(255, 255, 255), false },
+						{ malloc(sizeof(wchar_t) * 64), 320, 1120, 24, 64, 500, L"家具稠8", RGB(255, 255, 255), false },
+						{ L"Records", 1072, 160, 36, 96, 600, L"家具稠8", RGB(255, 255, 255), false },
+					};
+
+					for(int i = 0; i < 5; i++) {
+						memset(manyLayer.texts[i].content, 0, sizeof(wchar_t) * 64);
+					}
+
+					manyLayer.textCount = 6;
+
+					FILE* recordFIle = _wfsopen(L"record.txt", L"r", SH_DENYWR);
+
+					if(recordFIle != NULL) {
+						wchar_t buffer[64];
+						while(!feof(recordFIle))
+						{
+							for(int i = 0; i < 4; i++) {
+								wsprintfW(manyLayer.texts[i].content, manyLayer.texts[i + 1].content);
+							}
+
+
+							fgetws(manyLayer.texts[4].content, sizeof(wchar_t) * 64, recordFIle);
+						}
+
+
+						fclose(recordFIle);
+					}
+
+					manyLayer.renderAll(&manyLayer);
+
+					while(_getch() != EXIT) {}
+
+					manyLayer.images = (Image[]){
+						{ logoBitmapHandle, 352, 192, 4, false }
+					};
+
+					manyLayer.imageCount = 1;
+
+					manyLayer.texts = mainTexts;
+
+					manyLayer.textCount = 4;
+
+					manyLayer.renderAll(&manyLayer);
 
 					break;
 				}
