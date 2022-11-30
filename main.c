@@ -11,8 +11,7 @@
 #include "singleplayer.h"
 #include "multiplayer.h"
 
-// 콘솔 초기화 함수
-// 커서를 지우고 콘솔의 크기를 조절하며, 콘솔의 크기 조절을 막고 이름을 바꾼다
+// 커서를 지우고 콘솔의 크기를 조절하며, 콘솔의 크기 조절과 드래그을 막고 이름을 바꾼다
 void initializeConsole(void) {
 	const CONSOLE_CURSOR_INFO consoleCursorInformation = { 1, false };
 	const HWND consoleWindow = GetConsoleWindow();
@@ -31,8 +30,9 @@ void initializeConsole(void) {
 	Sleep(COMMAND_DELAY);
 }
 
-// 메인 함수
 // 메인 화면을 구성하고 입력에 따라 싱글플레이어, 멀티플레이어 게임을 실행한다
+// 기본적으로 함수를 호출해서 장면을 전환하는 방식으로 진행된다
+// 멀티플레이어는 서버와 클라이언트의 역할이 나뉘어져 있다
 int main(void) {
 	initializeConsole();
 
@@ -145,58 +145,6 @@ int main(void) {
 				}
 
 				case RECORD: {
-					manyLayer.images = NULL;
-
-					manyLayer.imageCount = 0;
-
-					manyLayer.texts = (Text[]){
-						{ malloc(sizeof(wchar_t) * 64), 320, 608, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ malloc(sizeof(wchar_t) * 64), 320, 736, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ malloc(sizeof(wchar_t) * 64), 320, 864, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ malloc(sizeof(wchar_t) * 64), 320, 992, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ malloc(sizeof(wchar_t) * 64), 320, 1120, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false },
-						{ L"Records", 1072, 160, 36, 96, 600, L"소야논8", RGB(255, 255, 255), false },
-					};
-
-					for(int i = 0; i < 5; i++) {
-						memset(manyLayer.texts[i].content, 0, sizeof(wchar_t) * 64);
-					}
-
-					manyLayer.textCount = 6;
-
-					FILE* recordFIle = _wfsopen(L"record.txt", L"r", SH_DENYWR);
-
-					if(recordFIle != NULL) {
-						wchar_t buffer[64];
-						while(!feof(recordFIle))
-						{
-							for(int i = 0; i < 4; i++) {
-								wsprintfW(manyLayer.texts[i].content, manyLayer.texts[i + 1].content);
-							}
-
-
-							fgetws(manyLayer.texts[4].content, sizeof(wchar_t) * 64, recordFIle);
-						}
-
-
-						fclose(recordFIle);
-					}
-
-					manyLayer.renderAll(&manyLayer);
-
-					while(_getch() != EXIT) {}
-
-					manyLayer.images = (Image[]){
-						{ logoBitmapHandle, 352, 192, 4, false }
-					};
-
-					manyLayer.imageCount = 1;
-
-					manyLayer.texts = mainTexts;
-
-					manyLayer.textCount = 4;
-
-					manyLayer.renderAll(&manyLayer);
 
 					break;
 				}
@@ -205,8 +153,6 @@ int main(void) {
 					stopSound();
 
 					playSound(creditWave, false);
-
-					//Sleep(1024);
 
 					manyLayer.images = NULL;
 
@@ -217,19 +163,22 @@ int main(void) {
 						{ L"노래", 1264, 208 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"테스터", 1248, 496 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"장비", 1264, 784 + 1424, 15, 40, 500, L"소야논8", RGB(255, 255, 255), false},
-						{ L"1401 김강민", 1120, 80 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
-						{ L"익명의 지인 1", 1104, 272 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
-						{ L"익명의 지인 2", 1104, 368 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"1401 김강민", 1116, 80 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"익명의 지인", 1128, 272 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"C00MP3K", 1160, 368 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"1421 이진서", 1128, 560 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
-						{ L"1428 진호정", 1128, 656 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
+						{ L"외 1-4 학생들", 1088, 656 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"핵8나5배", 1176, 848 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"은하초지적21더하기", 1008, 944 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"은하판형전산기초지적8더하기", 864, 1040 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"은하싹2", 1184, 1136 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 						{ L"은하책활성2", 1128, 1232 + 1424, 24, 64, 500, L"소야논8", RGB(255, 255, 255), false},
 					};
+					
 					manyLayer.textCount = 14;
+					
 					manyLayer.renderAll(&manyLayer);
+
 					Sleep(5120);
 
 					while(manyLayer.texts[13].y != -128) {
@@ -242,20 +191,6 @@ int main(void) {
 						Sleep(11);
 					}
 
-					/*while(!_kbhit()) {
-
-						for(int i = 0; i < 14; i++) {
-							manyLayer.texts[i].y -= 10;
-						}
-
-						manyLayer.renderAll(&manyLayer);
-
-						Sleep(10);
-					}
-
-					printf("%d", manyLayer.texts[13].y);*/
-
-					//while(_getch() != EXIT) {}
 					Sleep(5120);
 
 					stopSound();

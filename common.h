@@ -15,6 +15,7 @@
 #ifndef UTILITY_H_INCLUDED
 #define UTILITY_H_INCLUDED
 
+// 블록 비트맵을 로드해온다
 inline void initializeBlockBitmapHandles(HBITMAP* blockBitmapHandles) {
 	int index = 0;
 
@@ -30,6 +31,7 @@ inline void initializeBlockBitmapHandles(HBITMAP* blockBitmapHandles) {
 	blockBitmapHandles[index++] = DEFAULT_MANY_LAYER.getBitmapHandleFromResource(blockMapBitmap);
 }
 
+// 테트로미노 비트맵을 로드해온다
 inline void initializeTetrominoBitmapHandles(HBITMAP* tetrominoBitmapHandles) {
 	int index = 0;
 
@@ -42,6 +44,7 @@ inline void initializeTetrominoBitmapHandles(HBITMAP* tetrominoBitmapHandles) {
 	tetrominoBitmapHandles[index++] = DEFAULT_MANY_LAYER.getBitmapHandleFromResource(tetromino6Bitmap);
 }
 
+// 기록을 저장한다
 inline void updateRecord(wchar_t* content) {
 	FILE* recordFile = _wfsopen(L"record.txt", L"a", SH_DENYWR);
 
@@ -50,14 +53,17 @@ inline void updateRecord(wchar_t* content) {
 	fclose(recordFile);
 }
 
+// 소리를 재생한다
 inline void playSound(int soundName, bool isLoop) {
 	PlaySoundW(soundName, GetModuleHandleW(NULL), SND_RESOURCE | SND_ASYNC | (isLoop ? SND_LOOP : 0));
 }
 
+// 소리를 멈춘다
 inline void stopSound(void) {
 	PlaySoundW(NULL, NULL, NULL);
 }
 
+// 맵을 표시한다
 inline void updateMapBuffer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH]) {
 	for(int i = 0; i < MAP_HEIGHT; i++) {
 		for(int j = 0; j < MAP_WIDTH; j++) {
@@ -66,6 +72,7 @@ inline void updateMapBuffer(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH]) {
 	}
 }
 
+// 다음 블럭들을 표시한다
 inline void updateNextShapes(ManyLayer* manyLayer, int* nextShapes) {
 	for(int i = 0; i < 5; i++) {
 		manyLayer->images[MAP_WIDTH * MAP_HEIGHT + i].bitmapHandle = tetrominoBItmapHandles[nextShapes[i]];
@@ -74,13 +81,14 @@ inline void updateNextShapes(ManyLayer* manyLayer, int* nextShapes) {
 	manyLayer->renderAll(manyLayer);
 }
 
+// 점수를 표시한다
 inline void updateScore(ManyLayer* manyLayer, int score) {
 	wsprintfW(manyLayer->texts[0].content, L"%06d", score);
 
 	manyLayer->renderAll(manyLayer);
 }
 
-
+// 콤보를 표시한다
 inline void updateCombo(ManyLayer* manyLayer, int combo, bool isTetris) {
 	if(combo == 0) {
 		manyLayer->texts[1].isHidden = true;
@@ -95,6 +103,7 @@ inline void updateCombo(ManyLayer* manyLayer, int combo, bool isTetris) {
 	manyLayer->renderAll(manyLayer);
 }
 
+// 홀드를 표시한다
 inline void updateHolding(ManyLayer* manyLayer, int holdingShape) {
 	bool isHidden = holdingShape == 8;
 
@@ -107,7 +116,7 @@ inline void updateHolding(ManyLayer* manyLayer, int holdingShape) {
 	manyLayer->renderAll(manyLayer);
 }
 
-
+// 게임 종료 여부를 확인한다
 inline bool isGameEnded(int(*mapBuffer)[MAP_WIDTH]) {
 	bool _isGameEnd = false;
 
@@ -124,6 +133,7 @@ inline bool isGameEnded(int(*mapBuffer)[MAP_WIDTH]) {
 	return _isGameEnd;
 }
 
+// 테트로미노를 삭제한다
 inline void removeTetromino(int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int x, int y) {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 4; j++) {
@@ -133,6 +143,8 @@ inline void removeTetromino(int(*mapBuffer)[MAP_WIDTH], int shape, int rotation,
 		}
 	}
 }
+
+// 충돌 여부를 확인한다
 inline bool isCollided(int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int x, int y) {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 4; j++) {
@@ -145,6 +157,7 @@ inline bool isCollided(int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int 
 	return false;
 }
 
+// 테트로미노를 움직이고 표시한다
 inline void updateTetromino(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int* rotation, int* x, int* y, int direction) {
 	removeTetromino(mapBuffer, shape, *rotation, *x, *y);
 
@@ -190,7 +203,7 @@ inline void updateTetromino(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], in
 	manyLayer->renderAll(manyLayer);
 }
 
-
+// 테트로미노를 비활성 블럭으로 바꾸고 표시한다
 inline void inactivateTetromino(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int rotation, int x, int y) {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 4; j++) {
@@ -205,6 +218,7 @@ inline void inactivateTetromino(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH]
 	manyLayer->renderAll(manyLayer);
 }
 
+// 꽉 찬 줄을 없애고 표시한다
 inline void removeFullLine(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int shape, int* score, int* combo) {
 	int fullLineCount = 0;
 
@@ -249,11 +263,12 @@ inline void removeFullLine(ManyLayer* manyLayer, int(*mapBuffer)[MAP_WIDTH], int
 	manyLayer->renderAll(manyLayer);
 }
 
-
+// 콘솔 커서 위치를 바꾼다
 inline void setCoordinate(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), (COORD){ x, y });
 }
 
+// 오류를 출력한다
 inline void throwError(ManyLayer* manyLayer, const char* message) {
 	system("cls && color 04");
 
@@ -273,6 +288,7 @@ inline void throwError(ManyLayer* manyLayer, const char* message) {
 	exit(1);
 }
 
+// 타이머를 표시한다
 inline void startStartingTimer(ManyLayer* manyLayer) {
 	manyLayer->images = NULL;
 
@@ -290,29 +306,19 @@ inline void startStartingTimer(ManyLayer* manyLayer) {
 
 		manyLayer->renderAll(manyLayer);
 
-		Sleep(640);
+		Sleep(480);
 	}
 
 	wsprintfW(manyLayer->texts[1].content, L"GO!");
 
 	manyLayer->renderAll(manyLayer);
 
-	Sleep(480);
+	Sleep(320);
 
 	free(manyLayer->texts[1].content);
 }
 
-inline int getIntegerLength(int a) {
-	int r = 0;
-	
-	while(a != 0) {
-		a /= 10;
-		r++;
-	}
-
-	return r;
-}
-
+// sevenBag 시스템을 초기화한다
 inline int initializeSevenBag(int* sevenBag) {
 	for(int i = 0; i < 7; i++) {
 		sevenBag[i] = i;
@@ -328,6 +334,7 @@ inline int initializeSevenBag(int* sevenBag) {
 	}
 }
 
+// sevenBag에서 다음 블럭을 가져온다
 inline int getSevenBagShape(int* sevenBag) {
 	int index = 0, temporary;
 

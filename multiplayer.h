@@ -37,6 +37,7 @@ typedef struct {
 	bool* _isGameEnded, * isWin;
 } HandleSendingMultiplayerArgument;
 
+// 게임 진행 정보를 받아 적용한다
 inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argument) {
 	char buffer[1024];
 	int bufferIndex, temporaryInteger;
@@ -145,6 +146,7 @@ inline void handleReceivingMultiplayer(HandleReceivingMultiplayerArgument* argum
 	_endthreadex(0);
 }
 
+// 게임 진행 정보를 보낸다
 inline void handleSendingMultiplayer(HandleSendingMultiplayerArgument* argument) {
 	char buffer[1024];
 	int bufferIndex;
@@ -197,6 +199,7 @@ inline void handleSendingMultiplayer(HandleSendingMultiplayerArgument* argument)
 	_endthreadex(0);
 }
 
+// 소켓을 연결한다
 inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* socketAddress, bool isChallenger) {
 	WSADATA wsaData;
 	wchar_t ip[16];
@@ -329,10 +332,11 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 		}
 
 		manyLayer->texts = (Text[]){
-			{ L"Waiting for challenger", 700, 640, 36, 96, 600, L"소야논8", RGB(255, 255, 255), false },
+			{ L"Waiting for challenger", 700, 448, 36, 96, 600, L"소야논8", RGB(255, 255, 255), false },
+			{ L"(use ipconfig)", 1056, 736, 20, 50, 600, L"소야논8", RGB(255, 255, 255), false},
 		};
 
-		manyLayer->textCount = 1;
+		manyLayer->textCount = 2;
 
 		manyLayer->renderAll(manyLayer);
 
@@ -363,6 +367,9 @@ inline void startConnection(ManyLayer* manyLayer, SOCKET* _socket, SOCKADDR_IN* 
 	}
 }
 
+// 멀티플레이어 게임을 진행하고 표시한다
+// 매인 루프를 돌리며 키 입력을 확인하고 종료 여부를 확인한다
+// 멀티플레이어 관련 작업은 별도의 스레드를 생성해 처리한다
 inline void startGameMultiplayer(ManyLayer* manyLayer, bool isChallenger) {
 	initializeBlockBitmapHandles(blockBitmapHandles);
 	initializeTetrominoBitmapHandles(tetrominoBItmapHandles);

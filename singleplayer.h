@@ -12,6 +12,8 @@
 #ifndef SINGLEPLAYER_H_INCLUDED
 #define SINGLEPLAYER_H_INCLUDED
 
+// 싱글플레이어 게임을 진행하고 표시한다
+// 매인 루프를 돌리며 키 입력을 확인하고 종료 여부를 확인한다
 inline void startGameSingleplayer(ManyLayer* manyLayer) {
 	initializeBlockBitmapHandles(blockBitmapHandles);
 	initializeTetrominoBitmapHandles(tetrominoBItmapHandles);
